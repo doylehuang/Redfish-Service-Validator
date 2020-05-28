@@ -120,7 +120,8 @@ def validateSingleURI(URI, uriName='', expectedType=None, expectedSchema=None, e
             results[uriName]['warns'], results[uriName]['errors'] = next(lc)
             return False, counts, results, None, None
     except AuthenticationError as e:
-        raise  # re-raise exception
+        rsvLogger.error('Authentication error at URI {}'.format(URI))
+        return False, counts, results, None, None
     except Exception as e:
         rsvLogger.debug('Exception caught while creating ResourceObj', exc_info=1)
         rsvLogger.error('Unable to gather property info for URI {}: {}'

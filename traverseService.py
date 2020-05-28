@@ -326,7 +326,7 @@ class rfService():
         return payload
 
     @lru_cache(maxsize=128)
-    def callResourceURI(self, URILink):
+    def callResourceURI(self, URILink, forceAuthService=False):
         """
         Makes a call to a given URI or URL
 
@@ -367,9 +367,11 @@ class rfService():
 
         # determine if we need to Auth...
         if inService:
-            noauthchk =  URILink in ['/redfish', '/redfish/v1', '/redfish/v1/odata'] or\
-                '/redfish/v1/$metadata' in URILink
-
+            if not forceAuthService:
+                noauthchk = URILink.rstrip('/') in ['/redfish', '/redfish/v1', '/redfish/v1/odata'] or\
+                    '/redfish/v1/$metadata' in URILink
+            else:
+                noauthchk = False
             auth = None if noauthchk else (config['username'], config['password'])
             traverseLogger.debug('dont chkauth' if noauthchk else 'chkauth')
 
@@ -475,7 +477,15 @@ class rfService():
             traverseLogger.error("Request has encounted a problem when getting resource {}: {}".format(URILink, repr(e)))
             traverseLogger.debug("output: ", exc_info=True)
         except AuthenticationError as e:
-            raise e  # re-raise exception
+            if noauthchk and inService:
+                auth = (config['username'], config['password'])
+                if auth not in [(None, None), ('','')]:
+                    traverseLogger.error('Attempting Resource {} without credentials failed, attempting again...'.format(URILink))
+                    return self.callResourceURI(URILink, forceAuthService)
+                else:
+                    traverseLogger.error('Attempting Resource {} without credentials failed...'.format(URILink))
+                
+                raise e  # re-raise exception
         except Exception as e:
             traverseLogger.error("A problem when getting resource {} has occurred: {}".format(URILink, repr(e)))
             traverseLogger.debug("output: ", exc_info=True)
