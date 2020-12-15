@@ -369,7 +369,7 @@ class rfService():
 
         # determine if we need to Auth...
         if inService:
-            noauthchk =  URILink in ['/redfish', '/redfish/v1', '/redfish/v1/odata'] or\
+            noauthchk =  URILink in [] or\
                 '/redfish/v1/$metadata' in URILink
 
             auth = None if noauthchk else (config['username'], config['password'])
