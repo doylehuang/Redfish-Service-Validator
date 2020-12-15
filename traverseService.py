@@ -397,7 +397,8 @@ class rfService():
                 headers.update({"X-Auth-Token": currentSession.getSessionKey()})
             elif AuthType == 'Token':
                 headers.update({"Authorization": "Bearer " + Token})
-
+        if AuthType == 'None' and Token != '':
+            headers = {"Authorization": "Basic " + Token}
         if ExtraHeaders is not None:
             headers.update(ExtraHeaders)
 
